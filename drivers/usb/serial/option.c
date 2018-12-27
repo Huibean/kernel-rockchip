@@ -564,6 +564,19 @@ static void option_instat_callback(struct urb *urb);
 
 
 static const struct usb_device_id option_ids[] = {
+  #if 1 //Added by Quectel
+    { USB_DEVICE(0x05C6, 0x9090) }, /* Quectel UC15 */
+    { USB_DEVICE(0x05C6, 0x9003) }, /* Quectel UC20 */
+    { USB_DEVICE(0x2C7C, 0x0125) }, /* Quectel EC25 */
+    { USB_DEVICE(0x2C7C, 0x0121) }, /* Quectel EC21 */
+    { USB_DEVICE(0x05C6, 0x9215) }, /* Quectel EC20 */
+    { USB_DEVICE(0x2C7C, 0x0191) }, /* Quectel EG91 */
+    { USB_DEVICE(0x2C7C, 0x0195) }, /* Quectel EG95 */
+    { USB_DEVICE(0x2C7C, 0x0306) }, /* Quectel EG06/EP06/EM06 */
+    { USB_DEVICE(0x2C7C, 0x0296) }, /* Quectel BG96 */
+    { USB_DEVICE(0x2C7C, 0x0435) }, /* Quectel AG35 */
+  #endif
+
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
@@ -1972,6 +1985,9 @@ static struct usb_serial_driver option_1port_device = {
 #ifdef CONFIG_PM
 	.suspend           = usb_wwan_suspend,
 	.resume            = usb_wwan_resume,
+  #if 1  //Added by Sky  
+    .reset_resume   = usb_wwan_resume, 
+  #endif  
 #endif
 };
 
@@ -2004,10 +2020,23 @@ static int option_probe(struct usb_serial *serial,
 	 * Don't bind network interface on Samsung GT-B3730, it is handled by
 	 * a separate module.
 	 */
+
 	if (dev_desc->idVendor == cpu_to_le16(SAMSUNG_VENDOR_ID) &&
 	    dev_desc->idProduct == cpu_to_le16(SAMSUNG_PRODUCT_GT_B3730) &&
 	    iface_desc->bInterfaceClass != USB_CLASS_CDC_DATA)
 		return -ENODEV;
+
+  #if 1  //Added by Quectel 
+    //Quectel UC20's interface 4 can be used as USB Network device  
+    if (serial->dev->descriptor.idVendor == cpu_to_le16(0x05C6) && serial->dev->descriptor.idProduct == cpu_to_le16(0x9003) && serial->interface->cur_altsetting->desc.bInterfaceNumber >= 4)   
+    return -ENODEV; 
+    //Quectel EC20's interface 4 can be used as USB Network device  
+    if (serial->dev->descriptor.idVendor == cpu_to_le16(0x05C6) && serial->dev->descriptor.idProduct == cpu_to_le16(0x9215) && serial->interface->cur_altsetting->desc.bInterfaceNumber >= 4)   
+      return -ENODEV; 
+    //Quectel EC21&EC25&EC20 R2.0's interface 4 can be used as USB Network device  
+    if (serial->dev->descriptor.idVendor == cpu_to_le16(0x2C7C) && serial->interface->cur_altsetting->desc.bInterfaceNumber >= 4)   
+      return -ENODEV; 
+  #endif 
 
 	/* Store the device flags so we can use them during attach. */
 	usb_set_serial_data(serial, (void *)device_flags);

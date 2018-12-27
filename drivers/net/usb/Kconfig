@@ -607,4 +607,10 @@ config USB_NET_CH9200
 	  To compile this driver as a module, choose M here: the
 	  module will be called ch9200.
 
+config USB_GOBI_NET
+  tristate "Gobi USB Netdriver for Quectel module"
+  help
+    Support Quectel module.
+      A modem manager withsupport for GobiNet is recommended.To compile this driver as amodule, choose M here: the module will be called GobiNet.
+
 endif # USB_NET_DRIVERS
